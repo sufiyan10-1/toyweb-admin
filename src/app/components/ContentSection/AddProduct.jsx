@@ -16,7 +16,7 @@ export default function AddProduct() {
       setIsSubmitting(true)
       const formData = new FormData();
     
-      formData.append('productId', data.productId);
+      
       formData.append('productName', data.productName);
       formData.append('brand', data.brand);
       formData.append('price', data.price);

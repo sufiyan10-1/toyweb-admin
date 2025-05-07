@@ -18,17 +18,17 @@ export async function POST(req) {
 
     const productName = formData.get("productName");
     const brand = formData.get("brand");
-    const price = parseFloat(formData.get("price"));
-    const discount = parseFloat(formData.get("discount"));
+    const price = parseInt(formData.get("price"));
+    const discount = parseInt(formData.get("discount"));
     const currency = formData.get("currency");
     const stock = parseInt(formData.get("stock"));
     const isAvailable = formData.get("isAvailable") === "true";
     const category = formData.get("category");
     const tags = formData.get("tags")?.split(",") || [];
-    const weight = formData.get("weight");
-    const length = formData.get("length");
-    const width = formData.get("width");
-    const height = formData.get("height");
+    const weight = parseInt(formData.get("weight"));
+    const length = parseInt(formData.get("length"));
+    const width =  parseInt(formData.get("width"));
+    const height = parseInt(formData.get("height"));
     const description = formData.get("description");
 
     if (!file) {
