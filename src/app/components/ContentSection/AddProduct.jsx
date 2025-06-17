@@ -21,6 +21,7 @@ export default function AddProduct() {
       formData.append('brand', data.brand);
       formData.append('price', data.price);
       formData.append('discount', data.discount);
+      formData.append('collectionId', data.collectionId);
       formData.append('currency', data.currency);
       formData.append('stock', data.stock);
       formData.append('category', data.category);
@@ -84,6 +85,13 @@ export default function AddProduct() {
       <input {...register("brand")} type="text" placeholder="Brand" className="border p-2 rounded-lg" />
       <input {...register("price")} type="number" placeholder="Price" className="border p-2 rounded-lg"/>
       <input {...register("discount")} type="number" placeholder="Discount" className="border p-2 rounded-lg" />
+       <select {...register("collectionId")} className="border p-2 rounded-lg">
+        <option value="select collection">select collection</option>
+        <option value="1">Action Figures</option>
+        <option value="2">Educational Toys</option>
+        <option value="3">Remote Control Toys</option>
+        <option value="4">Building Blocks</option>
+      </select>
       <input {...register("currency")} type="text" placeholder="Currency" className="border p-2 rounded-lg"/>
       <input {...register("stock")} type="number" placeholder="Stock"  className="border p-2 rounded-lg" />
       <select {...register("isAvailable")} className="border p-2 rounded-lg">

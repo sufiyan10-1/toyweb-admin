@@ -30,7 +30,9 @@ export async function POST(req) {
     const width =  parseInt(formData.get("width"));
     const height = parseInt(formData.get("height"));
     const description = formData.get("description");
+    const collectionId = parseInt(formData.get("collectionId"));
 
+console.log(collectionId)
     if (!file) {
       return NextResponse.json({ error: "No file exists" }, { status: 400 });
     }
@@ -65,6 +67,7 @@ const newProduct = new productModel({
   stock,
   isAvailable,
   description,
+  collectionId,
   category,
   tags,
   weight,

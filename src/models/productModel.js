@@ -46,7 +46,11 @@ const ProductSchema = new mongoose.Schema({
     type: Number,
     
   },
-  
+   collectionId: {
+    type: Number,
+    default: 4
+    
+  },
    description: {
     type: String,
     required: [true, "description is required"],
