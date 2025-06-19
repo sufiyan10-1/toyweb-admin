@@ -11,55 +11,57 @@ export default function AddProduct() {
   const [selectedImages, setSelectedImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const onSubmit = async (data) => {
-    try {
-      setIsSubmitting(true)
-      const formData = new FormData();
-    
-      
-      formData.append('productName', data.productName);
-      formData.append('brand', data.brand);
-      formData.append('price', data.price);
-      formData.append('discount', data.discount);
-      formData.append('collectionId', data.collectionId);
-      formData.append('currency', data.currency);
-      formData.append('stock', data.stock);
-      formData.append('category', data.category);
-      formData.append('tags', data.tags);
-      formData.append('weight', data.weight);
-      formData.append('length', data.length);
-      formData.append('width', data.width);
-      formData.append('height', data.height);
-      formData.append('description', data.description);
- 
+ const onSubmit = async (data) => {
+  try {
+    setIsSubmitting(true);
 
-      const uploadedImageUrls = await Promise.all(
-        selectedImages.map(async (file) => {
-         
-          formData.append('file', file);
-          const response = await axios.post('/api/add-product',  formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
+    const imageUrls = await Promise.all(
+      selectedImages.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
 
-          toast({
-            title: 'Success!',
-            description: response.data.message,
-          });
-        })
-      );
+        const response = await axios.post('/api/upload-image', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-      const finalData = { ...data, images: uploadedImageUrls };
-      console.log('Final Form Data:', finalData);
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      toast({
-        title: 'Success!',
-        description: error,
-        variant: 'destructive',
-      });
-    }
-    setIsSubmitting(false)
-  };
+        return response.data.url;
+      })
+    );
+
+    // Final product payload
+    const finalProduct = {
+      ...data,
+      price: parseInt(data.price),
+      discount: parseInt(data.discount),
+      stock: parseInt(data.stock),
+      weight: parseInt(data.weight),
+      length: parseInt(data.length),
+      width: parseInt(data.width),
+      height: parseInt(data.height),
+      tags: data.tags.split(','),
+      isAvailable: data.isAvailable === "true",
+      collectionId: parseInt(data.collectionId),
+      images: imageUrls,
+    };
+
+    const res = await axios.post('/api/add-product', finalProduct);
+
+    toast({
+      title: 'Success!',
+      description: res.data.message,
+    });
+  } catch (error) {
+    console.error(error);
+    toast({
+      title: 'Error',
+      description: error.message,
+      variant: 'destructive',
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const handleImageChange = (file, index) => {
     setSelectedImages((prevImages) => {
