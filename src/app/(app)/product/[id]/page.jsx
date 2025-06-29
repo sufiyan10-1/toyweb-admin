@@ -5,6 +5,7 @@ import { Loader2, Pencil, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
+import { toast } from 'sonner';
 
 function EditableField({ label, value, onEdit }) {
   return (
@@ -18,8 +19,11 @@ function EditableField({ label, value, onEdit }) {
   );
 }
 
+const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
 function Page() {
   const [product, setProduct] = useState(null);
+  const [originalProduct, setOriginalProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editField, setEditField] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -27,21 +31,25 @@ function Page() {
   const [newTag, setNewTag] = useState('');
   const { id } = useParams();
 
+
+  //fatch all the products
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const { data } = await axios.post('/api/fatch-product', { id });
         setProduct(data.product);
+        setOriginalProduct(data.product);
       } catch (err) {
         console.error('Error fetching product:', err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [id]);
 
+
+ //save changes temparary  
   const handleSave = () => {
     if (editField === 'dimensions') {
       setProduct({ ...product, dimensions: [editValue] });
@@ -53,6 +61,51 @@ function Page() {
     setEditField(null);
   };
 
+
+ //save changes permanently 
+ const handlePermanentSave = async () => {
+  try {
+  
+    // Upload only new (blob) images
+    const uploadedImages = await Promise.all(
+      product.images.map(async (img) => {
+        if (img.startsWith("blob:")) {
+          const blob = await fetch(img).then(r => r.blob());
+          const formData = new FormData();
+          formData.append("file", blob);
+
+          const res = await axios.post("/api/upload-image", formData);
+          return res.data.url; // secure_url from Cloudinary
+        } else {
+          return img; // already uploaded
+        }
+      })
+    );
+
+    // Send updated product to backend
+    await axios.post("/api/edit-product", {
+      id: product._id,
+      updatedProduct: {
+        ...product,
+        images: uploadedImages,
+      },
+    });
+
+    toast.success("Product updated successfully!");
+    setOriginalProduct({
+      ...product,
+      images: uploadedImages,
+    }); // reset original for disable check
+
+  } catch (error) {
+    console.error("Update failed:", error);
+    toast.error("Failed to update product.");
+  } 
+};
+
+
+
+ //delete product 
   const handleDelete = () => {
     setDeleteConfirm(false);
     alert('Product deleted');
@@ -88,11 +141,15 @@ function Page() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">📦 Product Details</h1>
         <button
-          onClick={() => setDeleteConfirm(true)}
-          className="flex items-center gap-1 px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+          className={`px-6 py-2 rounded-sm text-center text-white ${
+            isEqual(product, originalProduct)
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+          disabled={isEqual(product, originalProduct)}
+          onClick={handlePermanentSave}
         >
-          <Trash2 className="w-4 h-4" />
-          Delete
+          Save
         </button>
       </div>
 
@@ -175,6 +232,18 @@ function Page() {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="mb-10 border rounded-xl p-5 shadow bg-white space-y-2">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-bold flex items-center gap-1"><Trash2 className="w-6 h-6" /> Delete Product</h2>
+          <button
+            onClick={() => setDeleteConfirm(true)}
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Delete
+          </button>
         </div>
       </div>
 
