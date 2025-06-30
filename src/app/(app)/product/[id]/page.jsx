@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { Loader2, Pencil, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
 import { toast } from 'sonner';
 
@@ -25,11 +25,13 @@ function Page() {
   const [product, setProduct] = useState(null);
   const [originalProduct, setOriginalProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [editField, setEditField] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [newTag, setNewTag] = useState('');
   const { id } = useParams();
+  const router = useRouter();
 
 
   //fatch all the products
@@ -106,9 +108,19 @@ function Page() {
 
 
  //delete product 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    setDeleteLoading(true)
+     try {
+    const res = await axios.delete(`/api/delete-product/${id}`);
+    router.push("/products")
+    toast.success(res.data.message); 
+  } catch (error) {
+    toast.error(error.response?.data?.error || "Something went wrong");
+  }
+  finally{
     setDeleteConfirm(false);
-    alert('Product deleted');
+    setDeleteLoading(false)
+  }
   };
 
   const removeTag = (index) => {
@@ -133,7 +145,7 @@ function Page() {
   }
 
   if (!product) {
-    return <div className="text-center text-red-500 mt-10">Product not found.</div>;
+    return <div className="mt-20 text-center text-red-500 ">Product not found.</div>;
   }
 
   return (
@@ -294,7 +306,7 @@ function Page() {
             <p className="text-sm mb-4">Are you sure you want to delete this product? This action cannot be undone.</p>
             <div className="flex justify-end gap-2">
               <button onClick={() => setDeleteConfirm(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
+              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">{deleteLoading ? <Loader2 className='animate-spin'/> :"Delete"}</button>
             </div>
           </div>
         </div>
